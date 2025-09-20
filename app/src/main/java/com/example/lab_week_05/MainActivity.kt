@@ -9,15 +9,24 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.lab_week_05.api.CatApiService
 import com.example.lab_week_05.model.ImageData
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import retrofit2.*
 import retrofit2.converter.moshi.MoshiConverterFactory
 
 class MainActivity : AppCompatActivity() {
 
+    // Buat Moshi instance dengan KotlinJsonAdapterFactory
+    private val moshi by lazy {
+        Moshi.Builder()
+            .add(KotlinJsonAdapterFactory())
+            .build()
+    }
+
     private val retrofit by lazy {
         Retrofit.Builder()
             .baseUrl("https://api.thecatapi.com/v1/")
-            .addConverterFactory(MoshiConverterFactory.create())
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
     }
 
@@ -48,6 +57,7 @@ class MainActivity : AppCompatActivity() {
         call.enqueue(object : Callback<List<ImageData>> {
             override fun onFailure(call: Call<List<ImageData>>, t: Throwable) {
                 Log.e(MAIN_ACTIVITY, "Failed to get response", t)
+                apiResponseView.text = "Error: ${t.message}"
             }
 
             override fun onResponse(
@@ -64,6 +74,7 @@ class MainActivity : AppCompatActivity() {
                         MAIN_ACTIVITY,
                         "Failed to get response\n" + response.errorBody()?.string().orEmpty()
                     )
+                    apiResponseView.text = "API Error"
                 }
             }
         })
