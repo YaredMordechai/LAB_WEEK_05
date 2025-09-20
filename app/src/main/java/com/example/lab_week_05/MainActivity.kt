@@ -2,6 +2,7 @@ package com.example.lab_week_05
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -16,7 +17,6 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 
 class MainActivity : AppCompatActivity() {
 
-    // Buat Moshi instance dengan KotlinJsonAdapterFactory
     private val moshi by lazy {
         Moshi.Builder()
             .add(KotlinJsonAdapterFactory())
@@ -36,6 +36,14 @@ class MainActivity : AppCompatActivity() {
 
     private val apiResponseView: TextView by lazy {
         findViewById(R.id.api_response)
+    }
+
+    private val imageResultView: ImageView by lazy {
+        findViewById(R.id.image_result)
+    }
+
+    private val imageLoader: ImageLoader by lazy {
+        GlideLoader(this) // GlideLoader terima Context
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,7 +74,12 @@ class MainActivity : AppCompatActivity() {
             ) {
                 if (response.isSuccessful) {
                     val image = response.body()
-                    val firstImage = image?.firstOrNull()?.imageUrl ?: "No URL"
+                    val firstImage = image?.firstOrNull()?.imageUrl.orEmpty()
+                    if (firstImage.isNotBlank()) {
+                        imageLoader.loadImage(firstImage, imageResultView)
+                    } else {
+                        Log.d(MAIN_ACTIVITY, "Missing image URL")
+                    }
                     apiResponseView.text =
                         getString(R.string.image_placeholder, firstImage)
                 } else {
